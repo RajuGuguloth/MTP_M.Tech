@@ -1,0 +1,26 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 START CAPTURE
+   Label:     SLOW_HTTP_8080
+   Duration:  300s
+   Output:    /captures/pcap/SLOW_HTTP_8080_20260315_163852.pcap
+   Time:      Sun Mar 15 16:38:52 IST 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tcpdump: data link type LINUX_SLL2
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+Maximum file limit reached: 1
+125 packets captured
+126 packets received by filter
+0 packets dropped by kernel
+
+✅ Capture complete → /captures/pcap/SLOW_HTTP_8080_20260315_163852.pcap
+   File size: 12K
+
+⚙️  Converting to flow CSV...
+reading from file /captures/pcap/SLOW_HTTP_8080_20260315_163852.pcap, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144
+Warning: interface names might be incorrect
+✅ Flows saved → /captures/flows/SLOW_HTTP_8080_20260315_163852_flows.csv
+   Flow count: 0 rows
+
+🗑️  Removing raw pcap to save disk space...
+   Done. Flows kept, pcap deleted.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

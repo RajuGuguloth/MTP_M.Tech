@@ -1,0 +1,492 @@
+[
+  {
+    "timestamp": "2026-03-09T13:12:33",
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "dataset": "combined_dataset_v4_flow.csv",
+    "total_sequences": 84111,
+    "train_size": 63993,
+    "val_size": 10059,
+    "test_size": 10059,
+    "features_kept": 33,
+    "features_dropped": [],
+    "smote_applied": true,
+    "adversarial_augmentation": "20% per class",
+    "train_class_dist": {
+      "BRUTE_FORCE": 17494,
+      "DDOS_HTTP_FLOOD": 38750,
+      "SLOW_HTTP": 7749
+    },
+    "notes": "Dataset refined: leakage removed, SMOTE applied to SLOW_HTTP, adversarial augmentation added"
+  },
+  {
+    "timestamp": "2026-03-10T00:44:46",
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "dataset": "combined_dataset_v4_flow.csv",
+    "total_sequences": 95737,
+    "train_size": 75619,
+    "val_size": 10059,
+    "test_size": 10059,
+    "features_kept": 33,
+    "features_dropped": [],
+    "smote_applied": true,
+    "adversarial_augmentation": "20% per class",
+    "train_class_dist": {
+      "BRUTE_FORCE": 17494,
+      "DDOS_HTTP_FLOOD": 38750,
+      "SLOW_HTTP": 19375
+    },
+    "notes": "Dataset refined: leakage removed, SMOTE applied to SLOW_HTTP, adversarial augmentation added"
+  },
+  {
+    "timestamp": "2026-03-12T23:54:28",
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "dataset": "combined_dataset_v4_flow.csv",
+    "total_sequences": 95737,
+    "train_size": 75619,
+    "val_size": 10059,
+    "test_size": 10059,
+    "features_kept": 33,
+    "features_dropped": [],
+    "smote_applied": true,
+    "adversarial_augmentation": "20% per class",
+    "train_class_dist": {
+      "BRUTE_FORCE": 17494,
+      "DDOS_HTTP_FLOOD": 38750,
+      "SLOW_HTTP": 19375
+    },
+    "notes": "Dataset refined: leakage removed, SMOTE applied to SLOW_HTTP, adversarial augmentation added"
+  },
+  {
+    "timestamp": "2026-03-12T23:59:14",
+    "round": 13,
+    "script": "train_cnn_gru_v4.py",
+    "epoch_best": 1,
+    "train_loss": 0.0368,
+    "val_loss": 0.0583,
+    "val_f1_macro": 0.5764,
+    "test_f1_macro": 0.6951,
+    "thresholds_used": {
+      "BRUTE_FORCE": 0.28,
+      "DDOS_HTTP_FLOOD": 0.36,
+      "SLOW_HTTP": 0.25
+    },
+    "per_class_metrics": {
+      "BRUTE_FORCE": {
+        "precision": 0.5028,
+        "recall": 0.6847,
+        "f1": 0.5798,
+        "support": 3124
+      },
+      "DDOS_HTTP_FLOOD": {
+        "precision": 0.8294,
+        "recall": 0.6935,
+        "f1": 0.7554,
+        "support": 6921
+      },
+      "SLOW_HTTP": {
+        "precision": 0.6667,
+        "recall": 0.8571,
+        "f1": 0.75,
+        "support": 14
+      }
+    },
+    "confusion_matrix": [
+      [
+        2139,
+        985,
+        0
+      ],
+      [
+        2115,
+        4800,
+        6
+      ],
+      [
+        0,
+        2,
+        12
+      ]
+    ],
+    "slow_http_test_samples": 14,
+    "improvement_vs_r12": {
+      "macro_f1_delta": 0.0851,
+      "slow_http_precision_delta": 0.0967,
+      "ddos_recall_delta": 0.2635
+    },
+    "notes": "Round 13 improvements confirmed"
+  },
+  {
+    "timestamp": "2026-03-13T00:05:10",
+    "script": "train_gnn_v1.py",
+    "status": "COMPLETE"
+  },
+  {
+    "timestamp": "2026-03-13T01:05:38",
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "dataset": "combined_dataset_v4_flow.csv",
+    "total_sequences": 2904,
+    "train_size": 2184,
+    "val_size": 360,
+    "test_size": 360,
+    "features_kept": 30,
+    "features_dropped": [
+      "flow_syn_ratio",
+      "is_high_port_dst",
+      "flow_packet_count"
+    ],
+    "smote_applied": true,
+    "adversarial_augmentation": "20% per class",
+    "train_class_dist": {
+      "BRUTE_FORCE": 417,
+      "DDOS_HTTP_FLOOD": 1178,
+      "SLOW_HTTP": 589
+    },
+    "notes": "Dataset refined: leakage removed, SMOTE applied to SLOW_HTTP, adversarial augmentation added"
+  },
+  {
+    "timestamp": "2026-03-13T01:14:12",
+    "round": 14,
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "total_sequences": 2904,
+    "train_size": 2184,
+    "val_size": 360,
+    "test_size": 360,
+    "features_used": 27,
+    "slow_http_train_before_smote": 348,
+    "slow_http_train_after_smote": 491,
+    "slow_http_test_real_only": 74,
+    "data_fixes_applied": [
+      "has_ip filter: removed 1,155,122 Layer-2 rows",
+      "dropped flow_syn_ratio (corr=0.978 BRUTE_FORCE)",
+      "dropped is_high_port_dst (corr=1.0 DDOS)",
+      "dropped flow_packet_count (corr=0.974 DDOS)",
+      "grouping changed to dst_port+ip_proto+attack_type"
+    ],
+    "train_class_dist": {
+      "BRUTE_FORCE": 417,
+      "DDOS_HTTP_FLOOD": 1178,
+      "SLOW_HTTP": 589
+    }
+  },
+  {
+    "timestamp": "2026-03-13T01:14:57",
+    "round": 14,
+    "script": "train_cnn_gru_v4.py",
+    "epoch_best": 3,
+    "train_loss": 0.0164,
+    "val_loss": 0.003,
+    "val_f1_macro": 0.997,
+    "test_f1_macro": 1.0,
+    "temperature": 0.6602,
+    "thresholds_used": {
+      "BRUTE_FORCE": 0.3,
+      "DDOS_HTTP_FLOOD": 0.3,
+      "SLOW_HTTP": 0.3
+    },
+    "per_class_metrics": {
+      "BRUTE_FORCE": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 75
+      },
+      "DDOS_HTTP_FLOOD": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 211
+      },
+      "SLOW_HTTP": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 74
+      }
+    },
+    "confusion_matrix": [
+      [
+        75,
+        0,
+        0
+      ],
+      [
+        0,
+        211,
+        0
+      ],
+      [
+        0,
+        0,
+        74
+      ]
+    ],
+    "slow_http_test_samples": 74,
+    "improvement_vs_r13": {
+      "macro_f1_delta": 0.3,
+      "slow_http_precision_delta": 0.33,
+      "ddos_recall_delta": 0.31
+    },
+    "notes": "R14 improvement confirmed"
+  },
+  {
+    "timestamp": "2026-03-15T10:59:18",
+    "round": 15,
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "split_strategy": "group_aware_dst_port",
+    "r14_f1_was_invalid": true,
+    "r14_cause": "same-group sequence leakage (random split shared dst_port groups)",
+    "train_groups": 637,
+    "val_groups": 113,
+    "test_groups": 133,
+    "total_sequences": 3177,
+    "train_size": 2680,
+    "val_size": 364,
+    "test_size": 133,
+    "features_used": 27,
+    "slow_http_train_before_smote": 245,
+    "slow_http_train_after_smote": 579,
+    "slow_http_test_real_only": 0,
+    "data_fixes_applied": [
+      "has_ip filter: removed 1,155,122 Layer-2 rows",
+      "dropped flow_syn_ratio (corr=0.978 BRUTE_FORCE)",
+      "dropped is_high_port_dst (corr=1.0 DDOS)",
+      "dropped flow_packet_count (corr=0.974 DDOS)",
+      "grouping: dst_port+ip_proto+attack_type",
+      "R15: GroupShuffleSplit \u2014 disjoint groups across train/val/test"
+    ],
+    "train_class_dist": {
+      "BRUTE_FORCE": 596,
+      "DDOS_HTTP_FLOOD": 1390,
+      "SLOW_HTTP": 694
+    }
+  },
+  {
+    "timestamp": "2026-03-15T11:51:22",
+    "round": 15,
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "split_strategy": "group_aware_dst_port",
+    "r14_f1_was_invalid": true,
+    "r14_cause": "same-group sequence leakage (random split shared dst_port groups)",
+    "train_groups": 3,
+    "val_groups": 1,
+    "test_groups": 1,
+    "total_sequences": 1718,
+    "train_size": 1088,
+    "val_size": 252,
+    "test_size": 378,
+    "features_used": 27,
+    "slow_http_train_before_smote": 245,
+    "slow_http_train_after_smote": 263,
+    "slow_http_test_real_only": 0,
+    "data_fixes_applied": [
+      "has_ip filter: removed 1,155,122 Layer-2 rows",
+      "dropped flow_syn_ratio (corr=0.978 BRUTE_FORCE)",
+      "dropped is_high_port_dst (corr=1.0 DDOS)",
+      "dropped flow_packet_count (corr=0.974 DDOS)",
+      "grouping: dst_port+ip_proto+attack_type",
+      "R15: GroupShuffleSplit \u2014 disjoint groups across train/val/test"
+    ],
+    "train_class_dist": {
+      "BRUTE_FORCE": 142,
+      "DDOS_HTTP_FLOOD": 631,
+      "SLOW_HTTP": 315
+    }
+  },
+  {
+    "timestamp": "2026-03-15T12:16:40",
+    "round": 15,
+    "script": "train_cnn_gru_v4.py",
+    "split_strategy": "group_aware_GroupShuffleSplit",
+    "r14_f1_was_invalid": true,
+    "epoch_best": 1,
+    "train_loss": 0.0019,
+    "val_loss": 0.0,
+    "val_f1_macro": 1.0,
+    "test_f1_macro": 1.0,
+    "temperature": 0.8612,
+    "thresholds_used": {
+      "BRUTE_FORCE": 0.3,
+      "DDOS_HTTP_FLOOD": 0.3,
+      "SLOW_HTTP": 0.3
+    },
+    "per_class_metrics": {
+      "BRUTE_FORCE": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 378
+      },
+      "DDOS_HTTP_FLOOD": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "SLOW_HTTP": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      }
+    },
+    "confusion_matrix": [
+      [
+        378,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "slow_http_test_samples": 0,
+    "improvement_vs_r13": {
+      "macro_f1_delta": 0.3,
+      "slow_http_precision_delta": -0.67,
+      "ddos_recall_delta": -0.69
+    },
+    "notes": "R15 improvement confirmed (group-aware split + correct thresholds)"
+  },
+  {
+    "timestamp": "2026-03-15T12:16:58",
+    "script": "train_gnn_v1.py",
+    "status": "COMPLETE"
+  },
+  {
+    "timestamp": "2026-03-15T12:56:10",
+    "round": 15,
+    "script": "refine_dataset.py",
+    "status": "SUCCESS",
+    "split_strategy": "group_aware_dst_port",
+    "r14_f1_was_invalid": true,
+    "r14_cause": "same-group sequence leakage (random split shared dst_port groups)",
+    "train_groups": 37,
+    "val_groups": 8,
+    "test_groups": 8,
+    "total_sequences": 1673,
+    "train_size": 1209,
+    "val_size": 232,
+    "test_size": 232,
+    "features_used": 17,
+    "slow_http_train_before_smote": 365,
+    "slow_http_train_after_smote": 365,
+    "slow_http_test_real_only": 58,
+    "data_fixes_applied": [
+      "has_ip filter: removed 1,155,122 Layer-2 rows",
+      "dropped flow_syn_ratio (corr=0.978 BRUTE_FORCE)",
+      "dropped is_high_port_dst (corr=1.0 DDOS)",
+      "dropped flow_packet_count (corr=0.974 DDOS)",
+      "grouping: dst_port+ip_proto+attack_type",
+      "R15: GroupShuffleSplit \u2014 disjoint groups across train/val/test"
+    ],
+    "train_class_dist": {
+      "BRUTE_FORCE": 439,
+      "DDOS_HTTP_FLOOD": 332,
+      "SLOW_HTTP": 438
+    }
+  },
+  {
+    "timestamp": "2026-03-15T12:57:00",
+    "round": 16,
+    "first_valid_result": true,
+    "feature_count": 17,
+    "zero_variance_cols_removed": [
+      "ip_header_length",
+      "packet_direction",
+      "ip_version",
+      "flow_std_pkt_len",
+      "flow_ack_ratio",
+      "Unnamed: 0"
+    ],
+    "additional_leaks_removed": [
+      "is_syn (corr=0.81 BF)",
+      "tcp_window_size (corr=0.81 SLOW)",
+      "flow_mean_entropy (corr=0.80 SLOW)"
+    ],
+    "grouping": "time_window_300",
+    "viable_groups": 53,
+    "classes_in_test": [
+      "DDOS_HTTP_FLOOD",
+      "BRUTE_FORCE",
+      "SLOW_HTTP"
+    ],
+    "random_seed_used": 42,
+    "fresh_start": true,
+    "prior_rounds_valid": false,
+    "prior_rounds_note": "R12-R15 invalid due to data bugs",
+    "script": "train_cnn_gru_v4.py",
+    "epoch_best": 9,
+    "train_loss": 0.0481,
+    "val_loss": 0.0243,
+    "val_f1_macro": 1.0,
+    "test_f1_macro": 0.9943,
+    "temperature": 0.8331,
+    "thresholds_used": {
+      "BRUTE_FORCE": 0.3,
+      "DDOS_HTTP_FLOOD": 0.3,
+      "SLOW_HTTP": 0.3
+    },
+    "per_class_metrics": {
+      "BRUTE_FORCE": {
+        "precision": 1.0,
+        "recall": 0.9828,
+        "f1": 0.9913,
+        "support": 58
+      },
+      "DDOS_HTTP_FLOOD": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 116
+      },
+      "SLOW_HTTP": {
+        "precision": 0.9831,
+        "recall": 1.0,
+        "f1": 0.9915,
+        "support": 58
+      }
+    },
+    "confusion_matrix": [
+      [
+        57,
+        0,
+        1
+      ],
+      [
+        0,
+        116,
+        0
+      ],
+      [
+        0,
+        0,
+        58
+      ]
+    ],
+    "slow_http_test_samples": 58
+  },
+  {
+    "timestamp": "2026-03-15T12:57:17",
+    "script": "train_gnn_v1.py",
+    "status": "COMPLETE"
+  },
+  {
+    "timestamp": "2026-03-15T15:06:45",
+    "script": "train_gnn_v1.py",
+    "status": "COMPLETE"
+  }
+]

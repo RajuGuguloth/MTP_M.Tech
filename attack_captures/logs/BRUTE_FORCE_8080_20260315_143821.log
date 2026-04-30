@@ -1,0 +1,31 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 START CAPTURE
+   Label:     BRUTE_FORCE_8080
+   Duration:  300s
+   Output:    /captures/pcap/BRUTE_FORCE_8080_20260315_143821.pcap
+   Time:      Sun Mar 15 14:38:21 IST 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tcpdump: data link type LINUX_SLL2
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+Maximum file limit reached: 1
+41344 packets captured
+41499 packets received by filter
+0 packets dropped by kernel
+
+✅ Capture complete → /captures/pcap/BRUTE_FORCE_8080_20260315_143821.pcap
+   File size: 39M
+
+⚙️  Converting to flow CSV...
+Traceback (most recent call last):
+  File "/usr/local/bin/cicflowmeter", line 5, in <module>
+    from cicflowmeter.sniffer import main
+  File "/usr/local/lib/python3.10/dist-packages/cicflowmeter/sniffer.py", line 5, in <module>
+    from .flow_session import generate_session_class
+  File "/usr/local/lib/python3.10/dist-packages/cicflowmeter/flow_session.py", line 4, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'
+⚠️  Flow conversion failed — check /captures/logs/BRUTE_FORCE_8080_20260315_143821.log
+
+🗑️  Removing raw pcap to save disk space...
+   Done. Flows kept, pcap deleted.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

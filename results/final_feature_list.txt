@@ -1,0 +1,34 @@
+FINAL FEATURE LIST
+Generated: 2026-03-13 01:05:37
+Count: 30
+
+label
+packet_length
+has_ip
+has_tcp
+has_udp
+has_icmp
+payload_length
+payload_entropy
+is_syn
+is_ack
+is_rst
+is_fin
+is_psh
+is_high_port_src
+is_well_known_port
+ip_header_length
+tcp_window_size
+packet_direction
+ip_version
+ip_ttl
+ip_proto
+src_port
+dst_port
+tcp_flags
+is_layer2_only
+flow_total_bytes
+flow_mean_pkt_len
+flow_std_pkt_len
+flow_mean_entropy
+flow_ack_ratio

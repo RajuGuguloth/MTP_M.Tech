@@ -1,0 +1,1655 @@
+
+============================================================
+  DATASET REFINEMENT PIPELINE
+  Started: 2026-03-09 13:11:06
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   Label column: 'label'
+
+📊  STEP 0 — Full Dataset Audit
+--------------------------------------------------
+  Class Distribution (ALL classes):
+  1                         2,596,339  (92.0%)  ████████████████████████████████████
+  0                          225,465  (8.0%)  ███
+
+  Numeric features found: 32
+  ✅  No missing values
+  ✅  No infinite values
+
+🔍  Leakage Detection (correlation > 0.85 flagged):
+  ✅  BRUTE_FORCE: no leakage detected
+  ✅  DDOS_HTTP_FLOOD: no leakage detected
+  ✅  SLOW_HTTP: no leakage detected
+
+  📄  Audit saved → results/dataset_audit.txt
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  ⚠️   These classes not found in dataset: ['BRUTE_FORCE', 'DDOS_HTTP_FLOOD', 'SLOW_HTTP']
+  Available classes: ['0', '1']
+  Filtered shape: 0 rows
+  BRUTE_FORCE                     0 rows
+  DDOS_HTTP_FLOOD                 0 rows
+  SLOW_HTTP                       0 rows
+
+============================================================
+🧹  STEP 2 — Remove Leaked Features
+--------------------------------------------------
+  ✅  No features to drop
+  Remaining features: 32
+  📄  Feature list saved → results/final_feature_list.txt
+
+============================================================
+⏱️   STEP 3 — Temporal Ordering
+--------------------------------------------------
+  No time column found — preserving CSV row order within groups ['src_port', 'dst_port', 'ip_proto']
+  ✅  Temporal ordering applied
+
+============================================================
+🔄  STEP 4 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 0
+
+  Per-class sequence counts:
+  BRUTE_FORCE                     0 sequences
+  DDOS_HTTP_FLOOD                 0 sequences
+  SLOW_HTTP                       0 sequences
+
+❌  ERROR: No sequences generated. Check your grouping columns.
+
+============================================================
+  DATASET REFINEMENT PIPELINE
+  Started: 2026-03-09 13:11:47
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   Label column: 'attack_type'
+
+📊  STEP 0 — Full Dataset Audit
+--------------------------------------------------
+  Class Distribution (ALL classes):
+  PORT_SCAN                 1,268,826  (45.0%)  █████████████████
+  DDOS_HTTP_FLOOD            604,657  (21.4%)  ████████
+  BRUTE_FORCE                497,240  (17.6%)  ███████
+  BENIGN                     225,465  (8.0%)  ███
+  DNS_TUNNELING              157,216  (5.6%)  ██
+  SLOW_HTTP                   68,400  (2.4%)  
+
+  Numeric features found: 33
+  ✅  No missing values
+  ✅  No infinite values
+
+🔍  Leakage Detection (correlation > 0.85 flagged):
+  ✅  BRUTE_FORCE: no leakage detected
+  ✅  DDOS_HTTP_FLOOD: no leakage detected
+  ✅  SLOW_HTTP: no leakage detected
+
+  📄  Audit saved → results/dataset_audit.txt
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 1,170,297 rows
+  BRUTE_FORCE               497,240 rows
+  DDOS_HTTP_FLOOD           604,657 rows
+  SLOW_HTTP                  68,400 rows
+
+============================================================
+🧹  STEP 2 — Remove Leaked Features
+--------------------------------------------------
+  ✅  No features to drop
+  Remaining features: 33
+  📄  Feature list saved → results/final_feature_list.txt
+
+============================================================
+⏱️   STEP 3 — Temporal Ordering
+--------------------------------------------------
+  No time column found — preserving CSV row order within groups ['src_port', 'dst_port', 'ip_proto']
+  ✅  Temporal ordering applied
+
+============================================================
+🔄  STEP 4 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 67,057
+  Sequence shape: (67057, 20, 33)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                20,827 sequences
+  DDOS_HTTP_FLOOD            46,133 sequences
+  SLOW_HTTP                      97 sequences
+
+============================================================
+✂️   STEP 5 — Train / Val / Test Split (70/15/15)
+--------------------------------------------------
+  Train: 46,939  Val: 10,059  Test: 10,059
+
+  Train class distribution:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                      68
+
+============================================================
+⚖️   STEP 6 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP: 68 → target 6,458 (+6,390 synthetic)
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                   6,458
+
+============================================================
+🥷  STEP 7 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +2,915 adversarial samples
+  DDOS_HTTP_FLOOD           +6,458 adversarial samples
+  SLOW_HTTP                 +1,291 adversarial samples
+
+  Final train size: 63,993 sequences
+
+============================================================
+📏  STEP 8 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  All splits clipped to [-5.0, 5.0] ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-2.71,  5.00]
+  Test range:  [-2.71, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 9 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  train_sequences.npy   → (63993, 20, 33)
+  ✅  val_sequences.npy     → (10059, 20, 33)
+  ✅  test_sequences.npy    → (10059, 20, 33)
+  ✅  scaler.pkl + label_encoder.pkl
+  ✅  dataset_stats.json
+
+============================================================
+✅  PIPELINE COMPLETE
+============================================================
+
+  Output directory : /Users/raju/firewall_ml_project/data/splits/v4_sequences_hard_subset
+  Audit report     : results/dataset_audit.txt
+  Feature list     : results/final_feature_list.txt
+  PoW log          : results/proof_of_work_log.json
+  Summary          : results/proof_of_work_summary.txt
+
+  Shape summary:
+    Train : (63993, 20, 33)  labels: (63993,)
+    Val   : (10059, 20, 33)   labels: (10059,)
+    Test  : (10059, 20, 33)  labels: (10059,)
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-09 13:12:33
+============================================================
+
+
+============================================================
+  DATASET REFINEMENT PIPELINE
+  Started: 2026-03-10 00:44:24
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   Label column: 'attack_type'
+
+📊  STEP 0 — Full Dataset Audit
+--------------------------------------------------
+  Class Distribution (ALL classes):
+  PORT_SCAN                 1,268,826  (45.0%)  █████████████████
+  DDOS_HTTP_FLOOD            604,657  (21.4%)  ████████
+  BRUTE_FORCE                497,240  (17.6%)  ███████
+  BENIGN                     225,465  (8.0%)  ███
+  DNS_TUNNELING              157,216  (5.6%)  ██
+  SLOW_HTTP                   68,400  (2.4%)  
+
+  Numeric features found: 33
+  ✅  No missing values
+  ✅  No infinite values
+
+🔍  Leakage Detection (correlation > 0.85 flagged):
+  ✅  BRUTE_FORCE: no leakage detected
+  ✅  DDOS_HTTP_FLOOD: no leakage detected
+  ✅  SLOW_HTTP: no leakage detected
+
+  📄  Audit saved → results/dataset_audit.txt
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 1,170,297 rows
+  BRUTE_FORCE               497,240 rows
+  DDOS_HTTP_FLOOD           604,657 rows
+  SLOW_HTTP                  68,400 rows
+
+============================================================
+🧹  STEP 2 — Remove Leaked Features
+--------------------------------------------------
+  ✅  No features to drop
+  Remaining features: 33
+  📄  Feature list saved → results/final_feature_list.txt
+
+============================================================
+⏱️   STEP 3 — Temporal Ordering
+--------------------------------------------------
+  No time column found — preserving CSV row order within groups ['src_port', 'dst_port', 'ip_proto']
+  ✅  Temporal ordering applied
+
+============================================================
+🔄  STEP 4 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 67,057
+  Sequence shape: (67057, 20, 33)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                20,827 sequences
+  DDOS_HTTP_FLOOD            46,133 sequences
+  SLOW_HTTP                      97 sequences
+
+============================================================
+✂️   STEP 5 — Train / Val / Test Split (70/15/15)
+--------------------------------------------------
+  Train: 46,939  Val: 10,059  Test: 10,059
+
+  Train class distribution:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                      68
+
+============================================================
+⚖️   STEP 6 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 68
+  SLOW_HTTP: 68 → target 16,146 (+16,078 synthetic)
+  SLOW_HTTP train after SMOTE: 16,146
+  SLOW_HTTP val (real only): 15
+  SLOW_HTTP test (real only): 14
+
+⚠️   WARNING: SLOW_HTTP test samples < 100. Metrics may be unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                  16,146
+
+============================================================
+🥷  STEP 7 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +2,915 adversarial samples
+  DDOS_HTTP_FLOOD           +6,458 adversarial samples
+  SLOW_HTTP                 +3,229 adversarial samples
+
+  Final train size: 75,619 sequences
+
+============================================================
+📏  STEP 8 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  All splits clipped to [-5.0, 5.0] ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.85,  5.00]
+  Test range:  [-1.85, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 9 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  Dataset stats saved to dataset_stats.json
+  ✅  train_sequences.npy   → (75619, 20, 33)
+  ✅  val_sequences.npy     → (10059, 20, 33)
+  ✅  test_sequences.npy    → (10059, 20, 33)
+  ✅  scaler.pkl + label_encoder.pkl
+
+============================================================
+✅  PIPELINE COMPLETE
+============================================================
+
+  Output directory : /Users/raju/firewall_ml_project/data/splits/v4_sequences_hard_subset
+  Audit report     : results/dataset_audit.txt
+  Feature list     : results/final_feature_list.txt
+  PoW log          : results/proof_of_work_log.json
+  Summary          : results/proof_of_work_summary.txt
+
+  Shape summary:
+    Train : (75619, 20, 33)  labels: (75619,)
+    Val   : (10059, 20, 33)   labels: (10059,)
+    Test  : (10059, 20, 33)  labels: (10059,)
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-10 00:44:46
+============================================================
+
+
+============================================================
+  DATASET REFINEMENT PIPELINE
+  Started: 2026-03-12 23:54:05
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   Label column: 'attack_type'
+
+📊  STEP 0 — Full Dataset Audit
+--------------------------------------------------
+  Class Distribution (ALL classes):
+  PORT_SCAN                 1,268,826  (45.0%)  █████████████████
+  DDOS_HTTP_FLOOD            604,657  (21.4%)  ████████
+  BRUTE_FORCE                497,240  (17.6%)  ███████
+  BENIGN                     225,465  (8.0%)  ███
+  DNS_TUNNELING              157,216  (5.6%)  ██
+  SLOW_HTTP                   68,400  (2.4%)  
+
+  Numeric features found: 33
+  ✅  No missing values
+  ✅  No infinite values
+
+🔍  Leakage Detection (correlation > 0.85 flagged):
+  ✅  BRUTE_FORCE: no leakage detected
+  ✅  DDOS_HTTP_FLOOD: no leakage detected
+  ✅  SLOW_HTTP: no leakage detected
+
+  📄  Audit saved → results/dataset_audit.txt
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 1,170,297 rows
+  BRUTE_FORCE               497,240 rows
+  DDOS_HTTP_FLOOD           604,657 rows
+  SLOW_HTTP                  68,400 rows
+
+============================================================
+🧹  STEP 2 — Remove Leaked Features
+--------------------------------------------------
+  ✅  No features to drop
+  Remaining features: 33
+  📄  Feature list saved → results/final_feature_list.txt
+
+============================================================
+⏱️   STEP 3 — Temporal Ordering
+--------------------------------------------------
+  No time column found — preserving CSV row order within groups ['src_port', 'dst_port', 'ip_proto']
+  ✅  Temporal ordering applied
+
+============================================================
+🔄  STEP 4 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 67,057
+  Sequence shape: (67057, 20, 33)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                20,827 sequences
+  DDOS_HTTP_FLOOD            46,133 sequences
+  SLOW_HTTP                      97 sequences
+
+============================================================
+✂️   STEP 5 — Train / Val / Test Split (70/15/15)
+--------------------------------------------------
+  Train: 46,939  Val: 10,059  Test: 10,059
+
+  Train class distribution:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                      68
+
+============================================================
+⚖️   STEP 6 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 68
+  SLOW_HTTP: 68 → target 16,146 (+16,078 synthetic)
+  SLOW_HTTP train after SMOTE: 16,146
+  SLOW_HTTP val (real only): 15
+  SLOW_HTTP test (real only): 14
+
+⚠️   WARNING: SLOW_HTTP test samples < 100. Metrics may be unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                14,579
+  DDOS_HTTP_FLOOD            32,292
+  SLOW_HTTP                  16,146
+
+============================================================
+🥷  STEP 7 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +2,915 adversarial samples
+  DDOS_HTTP_FLOOD           +6,458 adversarial samples
+  SLOW_HTTP                 +3,229 adversarial samples
+
+  Final train size: 75,619 sequences
+
+============================================================
+📏  STEP 8 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  All splits clipped to [-5.0, 5.0] ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.85,  5.00]
+  Test range:  [-1.85, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 9 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  Dataset stats saved to dataset_stats.json
+  ✅  train_sequences.npy   → (75619, 20, 33)
+  ✅  val_sequences.npy     → (10059, 20, 33)
+  ✅  test_sequences.npy    → (10059, 20, 33)
+  ✅  scaler.pkl + label_encoder.pkl
+
+============================================================
+✅  PIPELINE COMPLETE
+============================================================
+
+  Output directory : /Users/raju/firewall_ml_project/data/splits/v4_sequences_hard_subset
+  Audit report     : results/dataset_audit.txt
+  Feature list     : results/final_feature_list.txt
+  PoW log          : results/proof_of_work_log.json
+  Summary          : results/proof_of_work_summary.txt
+
+  Shape summary:
+    Train : (75619, 20, 33)  labels: (75619,)
+    Val   : (10059, 20, 33)   labels: (10059,)
+    Test  : (10059, 20, 33)  labels: (10059,)
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-12 23:54:28
+============================================================
+
+
+──────────────────────────────────────────────────
+[2026-03-12 23:59:14] ROUND 13 — train_cnn_gru_v4.py
+Val F1 Macro:          0.5764  (R12 baseline: 0.61)
+Test F1 Macro:         0.6951  (R12 baseline: 0.61)
+BRUTE_FORCE Precision: 0.5028  (R12: 0.42) target >0.65
+DDOS Recall:           0.6935  (R12: 0.43) target >0.75
+SLOW_HTTP Precision:   0.6667  (R12: 0.57) target >0.65
+SLOW_HTTP test samples: 14   (need >100)
+Thresholds: BF=0.28  DDOS=0.36  SLOW=0.25
+⚠️ CRITICAL WARNING: SLOW_HTTP test samples < 100.
+──────────────────────────────────────────────────
+
+──────────────────────────────────────────────────
+[2026-03-13 00:05:09] ROUND 13 — train_gnn_v1.py (Prototype)
+      torch_geometric unavailable — used manual graph construction.
+      Skipped standard PyG modeling fallback.
+      Graph Stats:
+      Nodes: 1363
+      Edges: 10059
+      Average node degree: 7.38
+      Edge feature dim: 128
+      ✅ GNN Prototype completed successfully.
+
+============================================================
+  DATASET REFINEMENT PIPELINE
+  Started: 2026-03-13 01:05:29
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   Shape after dropping non-IP packets: 1,666,682 rows
+   Label column: 'attack_type'
+
+📊  STEP 0 — Full Dataset Audit
+--------------------------------------------------
+  Class Distribution (ALL classes):
+  PORT_SCAN                 1,268,777  (76.1%)  ██████████████████████████████
+  BENIGN                     224,999  (13.5%)  █████
+  DNS_TUNNELING              152,490  (9.1%)  ███
+  DDOS_HTTP_FLOOD             10,416  (0.6%)  
+  BRUTE_FORCE                  5,000  (0.3%)  
+  SLOW_HTTP                    5,000  (0.3%)  
+
+  Numeric features found: 33
+  ✅  No missing values
+  ✅  No infinite values
+
+🔍  Leakage Detection (correlation > 0.85 flagged):
+  ⚠️  BRUTE_FORCE: [('flow_syn_ratio', 0.978)]
+  ⚠️  DDOS_HTTP_FLOOD: [('is_high_port_dst', 1.0), ('flow_packet_count', 0.974)]
+  ✅  SLOW_HTTP: no leakage detected
+
+  📄  Audit saved → results/dataset_audit.txt
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+🧹  STEP 2 — Remove Leaked Features
+--------------------------------------------------
+  Dropping 3 leaked features: ['flow_syn_ratio', 'is_high_port_dst', 'flow_packet_count']
+  Remaining features: 30
+  📄  Feature list saved → results/final_feature_list.txt
+
+============================================================
+⏱️   STEP 3 — Temporal Ordering
+--------------------------------------------------
+  No time column found — preserving CSV row order within groups ['dst_port', 'ip_proto', 'attack_type']
+  ✅  Temporal ordering applied
+
+============================================================
+🔄  STEP 4 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 2,398
+  Sequence shape: (2398, 20, 30)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD             1,404 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 5 — Train / Val / Test Split (70/15/15)
+--------------------------------------------------
+  Train: 1,678  Val: 360  Test: 360
+
+  Train class distribution:
+  BRUTE_FORCE                   348
+  DDOS_HTTP_FLOOD               982
+  SLOW_HTTP                     348
+
+============================================================
+⚖️   STEP 6 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 348
+  SLOW_HTTP: 348 → target 491 (+143 synthetic)
+  SLOW_HTTP train after SMOTE: 491
+  SLOW_HTTP val (real only): 75
+  SLOW_HTTP test (real only): 74
+
+⚠️   WARNING: SLOW_HTTP test samples < 100. Metrics may be unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   348
+  DDOS_HTTP_FLOOD               982
+  SLOW_HTTP                     491
+
+============================================================
+🥷  STEP 7 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +69 adversarial samples
+  DDOS_HTTP_FLOOD           +196 adversarial samples
+  SLOW_HTTP                 +98 adversarial samples
+
+  Final train size: 2,184 sequences
+
+============================================================
+📏  STEP 8 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  All splits clipped to [-5.0, 5.0] ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.82,  5.00]
+  Test range:  [-1.82, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 9 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  Dataset stats saved to dataset_stats.json
+  ✅  train_sequences.npy   → (2184, 20, 30)
+  ✅  val_sequences.npy     → (360, 20, 30)
+  ✅  test_sequences.npy    → (360, 20, 30)
+  ✅  scaler.pkl + label_encoder.pkl
+
+============================================================
+✅  PIPELINE COMPLETE
+============================================================
+
+  Output directory : /Users/raju/firewall_ml_project/data/splits/v4_sequences_hard_subset
+  Audit report     : results/dataset_audit.txt
+  Feature list     : results/final_feature_list.txt
+  PoW log          : results/proof_of_work_log.json
+  Summary          : results/proof_of_work_summary.txt
+
+  Shape summary:
+    Train : (2184, 20, 30)  labels: (2184,)
+    Val   : (360, 20, 30)   labels: (360,)
+    Test  : (360, 20, 30)  labels: (360,)
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-13 01:05:38
+============================================================
+
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 14
+  Started: 2026-03-13 01:14:04
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 2,398
+  Sequence shape: (2398, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD             1,404 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Train / Val / Test Split (70/15/15)
+--------------------------------------------------
+  Train: 1,678  Val: 360  Test: 360
+
+  Train class distribution:
+  BRUTE_FORCE                   348
+  DDOS_HTTP_FLOOD               982
+  SLOW_HTTP                     348
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 348
+  SLOW_HTTP: 348 → target 491 (+143 synthetic)
+  SLOW_HTTP train after SMOTE:  491
+  SLOW_HTTP val (real only):    75
+  SLOW_HTTP test (real only):   74
+
+⚠️  WARNING: SLOW_HTTP test samples < 100.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   348
+  DDOS_HTTP_FLOOD               982
+  SLOW_HTTP                     491
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +69 adversarial samples
+  DDOS_HTTP_FLOOD           +196 adversarial samples
+  SLOW_HTTP                 +98 adversarial samples
+
+  Final train size: 2,184 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.82,  5.00]
+  Test range:  [-1.82, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 8 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  train_sequences.npy   → (2184, 20, 27)
+  ✅  val_sequences.npy     → (360, 20, 27)
+  ✅  test_sequences.npy    → (360, 20, 27)
+  ✅  scaler.pkl + label_encoder.pkl
+  ✅  dataset_stats.json
+
+============================================================
+✅  PIPELINE COMPLETE — Round 14
+============================================================
+
+  Train : (2184, 20, 27)  labels: (2184,)
+  Val   : (360, 20, 27)   labels: (360,)
+  Test  : (360, 20, 27)  labels: (360,)
+  SLOW_HTTP test samples (real): 74
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-13 01:14:12
+============================================================
+
+
+──────────────────────────────────────────────────
+[2026-03-13 01:14:57] ROUND 14 — train_cnn_gru_v4.py
+Val F1 Macro:           0.9970  (R13 baseline: 0.7)
+Test F1 Macro:          1.0000
+BRUTE_FORCE Precision:  1.0000  (R13: 0.50) target >0.70
+DDOS Recall:            1.0000  (R13: 0.69) target >0.80
+SLOW_HTTP Precision:    1.0000  target >0.65
+SLOW_HTTP test samples: 74   (need >100)
+Thresholds: BF=0.3  DDOS=0.3  SLOW=0.3
+Temperature T: 0.6602
+⚠️  WARNING: SLOW_HTTP test samples < 100.
+──────────────────────────────────────────────────
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 14
+  Started: 2026-03-15 10:59:07
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 2,398
+  Sequence shape: (2398, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD             1,404 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  ✅  Groups are fully disjoint across train / val / test
+  Train groups: 637   Val groups: 113   Test groups: 133
+  Train: 1,901  Val: 364  Test: 133
+
+  Train class distribution:
+  BRUTE_FORCE                   497
+  DDOS_HTTP_FLOOD             1,159
+  SLOW_HTTP                     245
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 245
+  SLOW_HTTP: 245 → target 579 (+334 synthetic)
+  SLOW_HTTP train after SMOTE:  579
+  SLOW_HTTP val (real only):    252
+  SLOW_HTTP test (real only):   0
+
+⚠️  CRITICAL WARNING: SLOW_HTTP test samples < 50. Metrics very unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   497
+  DDOS_HTTP_FLOOD             1,159
+  SLOW_HTTP                     579
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +99 adversarial samples
+  DDOS_HTTP_FLOOD           +231 adversarial samples
+  SLOW_HTTP                 +115 adversarial samples
+
+  Final train size: 2,680 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on train only ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.99,  5.00]
+  Test range:  [-1.99, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 8 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  train_sequences.npy   → (2680, 20, 27)
+  ✅  val_sequences.npy     → (364, 20, 27)
+  ✅  test_sequences.npy    → (133, 20, 27)
+  ✅  scaler.pkl + label_encoder.pkl
+  ✅  dataset_stats.json
+
+============================================================
+✅  PIPELINE COMPLETE — Round 15
+============================================================
+
+  Train : (2680, 20, 27)  labels: (2680,)
+  Val   : (364, 20, 27)   labels: (364,)
+  Test  : (133, 20, 27)  labels: (133,)
+  SLOW_HTTP test samples (real): 0
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-15 10:59:18
+============================================================
+
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 14
+  Started: 2026-03-15 11:05:36
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 11:08:15
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  ✅  Groups are fully disjoint (per-class stratified group split)
+  Train groups: 0   Val groups: 2   Test groups: 3
+  Train: 0  Val: 371  Test: 1,149
+
+  Train class distribution:
+  BRUTE_FORCE                     0
+  DDOS_HTTP_FLOOD                 0
+  SLOW_HTTP                       0
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 0
+  SLOW_HTTP train after SMOTE:  0
+  SLOW_HTTP val (real only):    252
+  SLOW_HTTP test (real only):   245
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                     0
+  DDOS_HTTP_FLOOD                 0
+  SLOW_HTTP                       0
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+
+  Final train size: 0 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 11:12:56
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  BRUTE_FORCE: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 119 seqs
+  DDOS_HTTP_FLOOD: 1 groups | test holds 0 group(s) = 0 seqs | val holds 0 group(s) = 0 seqs
+  SLOW_HTTP: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 245 seqs
+  ✅  Groups are fully disjoint (per-class stratified group split)
+  Train groups: 3   Val groups: 2   Test groups: 0
+  Train: 1,156  Val: 364  Test: 0
+
+  Train class distribution:
+  BRUTE_FORCE                   378
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     252
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 252
+  SLOW_HTTP: 252 → target 263 (+11 synthetic, k=5)
+  SLOW_HTTP train after SMOTE:  263
+  SLOW_HTTP val (real only):    245
+  SLOW_HTTP test (real only):   0
+
+⚠️  CRITICAL WARNING: SLOW_HTTP test samples < 50. Metrics very unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   378
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     263
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +75 adversarial samples
+  DDOS_HTTP_FLOOD           +105 adversarial samples
+  SLOW_HTTP                 +52 adversarial samples
+
+  Final train size: 1,399 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 11:28:44
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  BRUTE_FORCE: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 119 seqs
+  DDOS_HTTP_FLOOD: 1 groups | test holds 0 group(s) = 0 seqs | val holds 0 group(s) = 0 seqs
+  SLOW_HTTP: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 245 seqs
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 11:44:51
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  BRUTE_FORCE: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 119 seqs
+  DDOS_HTTP_FLOOD: 1 groups | test holds 0 group(s) = 0 seqs | val holds 0 group(s) = 0 seqs
+  SLOW_HTTP: 2 groups | test holds 0 group(s) = 0 seqs | val holds 1 group(s) = 245 seqs
+  ✅  Groups are fully disjoint (per-class stratified group split)
+  Train groups: 3   Val groups: 2   Test groups: 0
+  Train: 1,156  Val: 364  Test: 0
+
+  Train class distribution:
+  BRUTE_FORCE                   378
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     252
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 252
+  SLOW_HTTP: 252 → target 263 (+11 synthetic, k=5)
+  SLOW_HTTP train after SMOTE:  263
+  SLOW_HTTP val (real only):    245
+  SLOW_HTTP test (real only):   0
+
+⚠️  CRITICAL WARNING: SLOW_HTTP test samples < 50. Metrics very unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   378
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     263
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +75 adversarial samples
+  DDOS_HTTP_FLOOD           +105 adversarial samples
+  SLOW_HTTP                 +52 adversarial samples
+
+  Final train size: 1,399 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 11:51:16
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection:
+   Always excluded (4): ['has_ip', 'is_layer2_only', 'label', 'attack_type']
+   Leaked features dropped (3):
+     flow_syn_ratio    → corr=0.978 with BRUTE_FORCE
+     is_high_port_dst  → corr=1.000 with DDOS
+     flow_packet_count → corr=0.974 with DDOS
+   Remaining features: 27
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_syn', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_header_length', 'tcp_window_size', 'packet_direction', 'ip_version', 'ip_ttl', 'ip_proto', 'src_port', 'dst_port', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len', 'flow_std_pkt_len', 'flow_mean_entropy', 'flow_ack_ratio']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type'] (stable service port, not ephemeral src_port)
+  No time column — preserving CSV row order within groups
+  Total groups: 904
+  Group sizes: min=1, max=5,279, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,520
+  Sequence shape: (1520, 20, 27)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   497 sequences
+  DDOS_HTTP_FLOOD               526 sequences
+  SLOW_HTTP                     497 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  ✅  Groups are fully disjoint (per-class stratified group split)
+  Train groups: 3   Val groups: 1   Test groups: 1
+  Train: 890  Val: 252  Test: 378
+
+  Train class distribution:
+  BRUTE_FORCE                   119
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     245
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 245
+  SLOW_HTTP: 245 → target 263 (+18 synthetic, k=5)
+  SLOW_HTTP train after SMOTE:  263
+  SLOW_HTTP val (real only):    252
+  SLOW_HTTP test (real only):   0
+
+⚠️  CRITICAL WARNING: SLOW_HTTP test samples < 50. Metrics very unreliable.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   119
+  DDOS_HTTP_FLOOD               526
+  SLOW_HTTP                     263
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +23 adversarial samples
+  DDOS_HTTP_FLOOD           +105 adversarial samples
+  SLOW_HTTP                 +52 adversarial samples
+
+  Final train size: 1,088 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on CLEAN real train (890 sequences, before SMOTE/aug) ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-2.74,  3.13]
+  Test range:  [-3.14, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 8 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  train_sequences.npy   → (1088, 20, 27)
+  ✅  val_sequences.npy     → (252, 20, 27)
+  ✅  test_sequences.npy    → (378, 20, 27)
+  ✅  scaler.pkl + label_encoder.pkl
+  ✅  dataset_stats.json
+
+============================================================
+✅  PIPELINE COMPLETE — Round 15
+============================================================
+
+  Train : (1088, 20, 27)  labels: (1088,)
+  Val   : (252, 20, 27)   labels: (252,)
+  Test  : (378, 20, 27)  labels: (378,)
+  SLOW_HTTP test samples (real): 0
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-15 11:51:22
+============================================================
+
+
+──────────────────────────────────────────────────
+[2026-03-15 12:16:40] ROUND 15 — train_cnn_gru_v4.py
+Val F1 Macro:           1.0000  (R13 honest baseline: 0.7, R14=1.00 was invalid)
+Test F1 Macro:          1.0000
+BRUTE_FORCE Precision:  1.0000  (R13: 0.50) target >0.70
+DDOS Recall:            0.0000  (R13: 0.69) target >0.80
+SLOW_HTTP Precision:    0.0000  target >0.65
+SLOW_HTTP test samples: 0   (need >100)
+Thresholds: BF=0.3  DDOS=0.3  SLOW=0.3
+Temperature T: 0.8612
+⚠️  CRITICAL WARNING: SLOW_HTTP test samples < 50.
+──────────────────────────────────────────────────
+
+──────────────────────────────────────────────────
+[2026-03-15 12:16:58] ROUND 15 — train_gnn_v1.py (Prototype)
+      torch_geometric unavailable — used manual graph construction.
+      Skipped standard PyG modeling fallback.
+      Graph Stats:
+      Nodes: 379
+      Edges: 378
+      Average node degree: 1.00
+      Edge feature dim: 128
+      ✅ GNN Prototype completed successfully.
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 12:55:15
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection (Round 16):
+   Feature count: 17
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_ttl', 'ip_proto', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+  DATASET REFINEMENT PIPELINE — ROUND 15
+  Started: 2026-03-15 12:56:03
+============================================================
+
+📂  Loading: combined_dataset_v4_flow.csv
+   Raw shape: 2,821,804 rows × 34 columns
+   [Fix 1] Removed 1,155,122 Layer-2 rows, 1,666,682 rows remain
+   Label column: 'attack_type'
+
+📊  Class Distribution (ALL classes):
+  PORT_SCAN                      1,268,777  (76.1%)
+  BENIGN                          224,999  (13.5%)
+  DNS_TUNNELING                   152,490  (9.1%)
+  DDOS_HTTP_FLOOD                  10,416  (0.6%)
+  BRUTE_FORCE                       5,000  (0.3%)
+  SLOW_HTTP                         5,000  (0.3%)
+
+🧹  [Fix 2] Feature Selection (Round 16):
+   Feature count: 17
+   Feature list: ['packet_length', 'has_tcp', 'has_udp', 'has_icmp', 'payload_length', 'payload_entropy', 'is_ack', 'is_rst', 'is_fin', 'is_psh', 'is_high_port_src', 'is_well_known_port', 'ip_ttl', 'ip_proto', 'tcp_flags', 'flow_total_bytes', 'flow_mean_pkt_len']
+   ✅  No missing / infinite values (or fixed)
+
+============================================================
+📌  STEP 1 — Filter to 3 HTTP Attack Classes
+--------------------------------------------------
+  Filtered shape: 20,416 rows
+  BRUTE_FORCE                 5,000 rows
+  DDOS_HTTP_FLOOD            10,416 rows
+  SLOW_HTTP                   5,000 rows
+
+============================================================
+⏱️   STEP 2 — Temporal Ordering
+--------------------------------------------------
+  [Fix 3] Grouping by: ['dst_port', 'ip_proto', 'attack_type', 'time_window'] (Time window = 300 pkts)
+  Total groups: 953
+  Group sizes: min=1, max=300, median=6
+
+============================================================
+🔄  STEP 3 — Build Sliding Window Sequences
+    Window=20, Stride=10
+--------------------------------------------------
+  Total sequences generated: 1,472
+  Sequence shape: (1472, 20, 17)
+
+  Per-class sequence counts:
+  BRUTE_FORCE                   482 sequences
+  DDOS_HTTP_FLOOD               509 sequences
+  SLOW_HTTP                     481 sequences
+
+============================================================
+✂️   STEP 4 — Group-Aware Train / Val / Test Split
+    Strategy: GroupShuffleSplit on (dst_port,ip_proto,attack_type) groups
+--------------------------------------------------
+  ✅ Seed 42 successfully produced all 3 classes in test set.
+Train classes: {'DDOS_HTTP_FLOOD', 'BRUTE_FORCE', 'SLOW_HTTP'}
+Val classes:   {'DDOS_HTTP_FLOOD', 'BRUTE_FORCE', 'SLOW_HTTP'}
+Test classes:  {'DDOS_HTTP_FLOOD', 'BRUTE_FORCE', 'SLOW_HTTP'}
+  ✅  Groups are fully disjoint (per-class stratified group split)
+  Train groups: 37   Val groups: 8   Test groups: 8
+  Train: 1,008  Val: 232  Test: 232
+
+  Train class distribution:
+  BRUTE_FORCE                   366
+  DDOS_HTTP_FLOOD               277
+  SLOW_HTTP                     365
+
+============================================================
+⚖️   STEP 5 — SMOTE Oversampling (SLOW_HTTP, train only)
+--------------------------------------------------
+  SLOW_HTTP train before SMOTE: 365
+  ✅  SLOW_HTTP already at 365 — no oversampling needed
+  SLOW_HTTP train after SMOTE:  365
+  SLOW_HTTP val (real only):    58
+  SLOW_HTTP test (real only):   58
+
+⚠️  WARNING: SLOW_HTTP test samples < 100.
+
+  Train class distribution after SMOTE:
+  BRUTE_FORCE                   366
+  DDOS_HTTP_FLOOD               277
+  SLOW_HTTP                     365
+
+============================================================
+🥷  STEP 6 — Adversarial Augmentation (20% of train)
+--------------------------------------------------
+  BRUTE_FORCE               +73 adversarial samples
+  DDOS_HTTP_FLOOD           +55 adversarial samples
+  SLOW_HTTP                 +73 adversarial samples
+
+  Final train size: 1,209 sequences
+
+============================================================
+📏  STEP 7 — StandardScaler + Clip to [-5, +5]
+--------------------------------------------------
+  Scaler fitted on CLEAN real train (1008 sequences, before SMOTE/aug) ✅
+  Train range: [-5.00, 5.00]
+  Val range:   [-1.67,  5.00]
+  Test range:  [-1.67, 5.00]
+
+  Label encoding: {'BRUTE_FORCE': 0, 'DDOS_HTTP_FLOOD': 1, 'SLOW_HTTP': 2}
+
+============================================================
+💾  STEP 8 — Save Splits & Scaler
+--------------------------------------------------
+  ✅  train_sequences.npy   → (1209, 20, 17)
+  ✅  val_sequences.npy     → (232, 20, 17)
+  ✅  test_sequences.npy    → (232, 20, 17)
+  ✅  scaler.pkl + label_encoder.pkl
+  ✅  dataset_stats.json
+
+============================================================
+✅  PIPELINE COMPLETE — Round 15
+============================================================
+
+  Train : (1209, 20, 17)  labels: (1209,)
+  Val   : (232, 20, 17)   labels: (232,)
+  Test  : (232, 20, 17)  labels: (232,)
+  SLOW_HTTP test samples (real): 58
+
+  ⚡  Ready for train_cnn_gru_v4.py
+
+  Finished: 2026-03-15 12:56:10
+============================================================
+
+
+──────────────────────────────────────────────────
+[2026-03-15 12:57:00] ROUND 16 — train_cnn_gru_v4.py
+Val F1 Macro:           1.0000
+Test F1 Macro:          0.9943
+BRUTE_FORCE Precision:  1.0000
+DDOS Recall:            1.0000
+SLOW_HTTP Precision:    0.9831
+SLOW_HTTP test samples: 58
+Thresholds: BF=0.3  DDOS=0.3  SLOW=0.3
+Temperature T: 0.8331
+R16 First Valid Evaluation Completed.
+──────────────────────────────────────────────────
+
+──────────────────────────────────────────────────
+[2026-03-15 12:57:17] ROUND 16 — train_gnn_v1.py (Prototype)
+      torch_geometric unavailable — used manual graph construction.
+      Skipped standard PyG modeling fallback.
+      Graph Stats:
+      Nodes: 235
+      Edges: 232
+      Average node degree: 0.99
+      Edge feature dim: 128
+      ✅ GNN Prototype completed successfully.
+
+──────────────────────────────────────────────────
+[2026-03-15 15:06:44] ROUND 16 — train_gnn_v1.py (Prototype)
+      Graph Stats:
+      Nodes: 235
+      Edges: 232
+      Average node degree: 0.99
+      Edge feature dim: 128
+      ✅ GNN Prototype completed successfully.
