@@ -38,6 +38,17 @@ except Exception as e:
     rf_model = None
 
 CLASSES = ["BRUTE_FORCE", "DDOS_HTTP_FLOOD", "SLOW_HTTP", "PORT_SCAN", "DNS_TUNNELING"]
+FEATURE_NAMES = [
+    "packet_length",
+    "has_tcp", "has_udp", "has_icmp",
+    "payload_length", "payload_entropy",
+    "is_ack", "is_rst", "is_fin", "is_psh",
+    "is_high_port_src",
+    "ip_ttl", "ip_proto",
+    "dst_port", "tcp_flags",
+    "flow_total_bytes", "flow_mean_pkt_len",
+]
+WINDOW_SIZE = 20
 APP_START_TIME = time.time()
 
 # ─── IN-MEMORY STATS ─────────────────────────────────────────────────────────
@@ -58,13 +69,31 @@ class PredictRequest(BaseModel):
 class BatchPredictRequest(BaseModel):
     sequences: List[List[List[float]]]
 
+
+def include_input_details(result: dict, seq_list: List[List[float]]):
+    """Include the exact labeled feature values submitted for inference."""
+    return {
+        **result,
+        "attack_label": result["label"],
+        "input_window": {
+            "window_size": WINDOW_SIZE,
+            "feature_count": len(FEATURE_NAMES),
+            "feature_names": FEATURE_NAMES,
+            "packets": [
+                dict(zip(FEATURE_NAMES, packet))
+                for packet in seq_list
+            ],
+        },
+    }
+
+
 # ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
 def process_single_sequence(seq_list: List[List[float]]):
     """Returns single prediction dictionary."""
-    if len(seq_list) != 20:
-        raise ValueError(f"Sequence length must be exactly 20, got {len(seq_list)}")
-    if any(len(pkt) != 17 for pkt in seq_list):
-        raise ValueError("Each packet in sequence must have exactly 17 features")
+    if len(seq_list) != WINDOW_SIZE:
+        raise ValueError(f"Sequence length must be exactly {WINDOW_SIZE}, got {len(seq_list)}")
+    if any(len(pkt) != len(FEATURE_NAMES) for pkt in seq_list):
+        raise ValueError(f"Each packet in sequence must have exactly {len(FEATURE_NAMES)} features")
 
     # 1. Tier-1 Fast Path Check
     packet_1 = np.array(seq_list[0]).reshape(1, -1)
@@ -100,7 +129,7 @@ def process_single_sequence(seq_list: List[List[float]]):
         raise RuntimeError("ONNX session not initialized")
 
     # 2. Tier-2 Deep Inspection
-    seq_np = np.array(seq_list, dtype=np.float32).reshape(1, 20, 17)
+    seq_np = np.array(seq_list, dtype=np.float32).reshape(1, WINDOW_SIZE, len(FEATURE_NAMES))
     logits = ort_session.run(None, {onnx_input_name: seq_np})[0][0] # shape (5,)
     
     # Apply Temperature Scaling and Softmax
@@ -159,7 +188,7 @@ def predict(req: PredictRequest):
         else:
             stats["total_allowed"] += 1
             
-        return result
+        return include_input_details(result, req.sequence)
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
@@ -176,11 +205,11 @@ def predict_batch(req: BatchPredictRequest):
     for seq in req.sequences:
         try:
             res = process_single_sequence(seq)
-            results.append({
+            results.append(include_input_details({
                 "label": res["label"],
                 "confidence": res["confidence"],
                 "action": res["action"]
-            })
+            }, seq))
             
             # Update batch local counts
             if res["action"] == "BLOCK": blk += 1
